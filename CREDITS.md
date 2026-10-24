@@ -1,21 +1,21 @@
 # Credits
 
-## Библиотеки (в `third_party/`)
+## Libraries (in `third_party/`)
 
-| Библиотека | Версия | Автор | Лицензия | Ссылка |
+| Library | Version | Author | License | Link |
 |---|---|---|---|---|
-| GLFW | 3.4 | Marcus Geelnard, Camilla Löwy и участники | zlib/libpng | https://www.glfw.org |
+| GLFW | 3.4 | Marcus Geelnard, Camilla Löwy and contributors | zlib/libpng | https://www.glfw.org |
 | GLM | 1.0.1 | G-Truc Creation | MIT (Happy Bunny) | https://github.com/g-truc/glm |
 | Dear ImGui | 1.90.1 | Omar Cornut | MIT | https://github.com/ocornut/imgui |
 | stb_image | 2.30 | Sean Barrett | Public domain / MIT | https://github.com/nothings/stb |
-| GLAD 2 (сгенерированный загрузчик GL 3.3 core) | glad2 | David Herberth | MIT, спецификации Khronos | https://github.com/Dav1dde/glad |
+| GLAD 2 (generated GL 3.3 core loader) | glad2 | David Herberth | MIT, Khronos specifications | https://github.com/Dav1dde/glad |
 
-Исходники GLFW, GLM и Dear ImGui взяты из пакетов Ubuntu (archive.ubuntu.com, pool/universe), stb_image из репозитория nothings/stb.
+GLFW, GLM and Dear ImGui were obtained from Ubuntu packages at archive.ubuntu.com, pool/universe. The stb_image source comes from nothings/stb.
 
-## Текстуры и ассеты
+## Textures and assets
 
-Все текстуры в `assets/textures/` созданы скриптом `tools/gen_textures.py` (процедурный шум), сторонних ассетов нет. Если в проект попадут внешние текстуры или модели, добавьте строку: название, автор, ссылка, лицензия.
+The script `tools/gen_textures.py` creates every texture in `assets/textures/` using procedural noise. No third-party assets are included. Record the name, author, link and license here whenever an external texture or model is added.
 
-## Туториалы и код по мотивам
+## Tutorials and references
 
-Подход к skybox (`gl_Position = pos.xyww`, `GL_LEQUAL`) и Blinn-Phong описан в LearnOpenGL (Joey de Vries, https://learnopengl.com, CC BY-NC 4.0). Код написан заново, не скопирован.
+LearnOpenGL describes the skybox technique (`gl_Position = pos.xyww`, `GL_LEQUAL`) and Blinn-Phong lighting (Joey de Vries, https://learnopengl.com, CC BY-NC 4.0). The implementation was written from scratch rather than copied from the tutorial.
