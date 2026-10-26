@@ -4,6 +4,7 @@
 #include "SolarSystem.h"
 #include <cmath>
 #include <cstdio>
+#include <stdexcept>
 
 static int failures = 0;
 #define CHECK(cond)                                                          \
@@ -31,6 +32,34 @@ static void sphereTrianglesFaceOutward() {  // CCW winding seen from outside, ne
         if (glm::dot(n, a + b + c) < 0.0f) ++inward;
     }
     CHECK(inward == 0);
+}
+
+static void ringHasHoleAndConsistentWinding() {
+    MeshData m = makeRing(64, 1.25f, 2.4f);
+    CHECK(m.vertices.size() == 130u);
+    CHECK(m.indices.size() == 384u);
+    for (const auto& v : m.vertices) {
+        CHECK(near(v.pos.y, 0.0f));
+        CHECK(near(glm::length(v.pos), v.uv.x == 0.0f ? 1.25f : 2.4f));
+        CHECK(v.uv.y >= 0.0f && v.uv.y <= 1.0f);
+        CHECK(near(v.normal.y, 1.0f));
+    }
+    for (size_t i = 0; i < m.indices.size(); i += 3) {
+        CHECK(m.indices[i] < m.vertices.size() && m.indices[i + 1] < m.vertices.size() &&
+              m.indices[i + 2] < m.vertices.size());
+        glm::vec3 a = m.vertices.at(m.indices[i]).pos, b = m.vertices.at(m.indices[i + 1]).pos;
+        glm::vec3 c = m.vertices.at(m.indices[i + 2]).pos;
+        CHECK(glm::cross(b - a, c - a).y > 0.0f);
+        CHECK(glm::length((a + b + c) / 3.0f) > 1.2f);  // no triangles across the central hole
+    }
+    CHECK(near(glm::length(m.vertices[0].pos - m.vertices[128].pos), 0.0f));
+    CHECK(near(glm::length(m.vertices[1].pos - m.vertices[129].pos), 0.0f));
+    bool rejected = false;
+    try { makeRing(2, 1.25f, 2.4f); } catch (const std::invalid_argument&) { rejected = true; }
+    CHECK(rejected);
+    rejected = false;
+    try { makeRing(64, 2.4f, 1.25f); } catch (const std::invalid_argument&) { rejected = true; }
+    CHECK(rejected);
 }
 
 static void moonOrbitsEarthNotSun() {
@@ -80,6 +109,7 @@ static void cameraSmoothingIsFrameRateIndependent() {
 int main() {
     sphereHasExpectedTopology();
     sphereTrianglesFaceOutward();
+    ringHasHoleAndConsistentWinding();
     moonOrbitsEarthNotSun();
     earthOrbitRadiusAndPeriod();
     childrenAreNotScaledByParent();

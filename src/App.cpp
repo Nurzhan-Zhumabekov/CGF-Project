@@ -27,6 +27,7 @@ App::App()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     system_.update(simDays_);
 }
 
@@ -122,6 +123,7 @@ void App::render() {
     drawBodies();
     if (state_.orbitLines) drawOrbitLines(view, proj);
     skybox_.draw(view, proj);
+    rings_.draw(system_.planet(5), view, proj, system_.sun().position(), camera_.position(), state_.fillLight);
 }
 
 void App::run() {

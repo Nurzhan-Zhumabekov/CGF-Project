@@ -1,6 +1,7 @@
 #pragma once
 #include "Camera.h"
 #include "Mesh.h"
+#include "SaturnRings.h"
 #include "Shader.h"
 #include "Skybox.h"
 #include "SolarSystem.h"
@@ -31,6 +32,7 @@ private:
     Shader planetShader_, lineShader_;
     Mesh sphere_, circle_;
     Skybox skybox_;
+    SaturnRings rings_;
     std::map<std::string, Texture> textures_;
     UI ui_;
 
