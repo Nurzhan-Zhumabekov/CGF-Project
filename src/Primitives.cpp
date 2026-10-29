@@ -64,3 +64,22 @@ MeshData makeCircle(int segments) {
     }
     return m;
 }
+
+MeshData makeRing(int segments, float innerRadius, float outerRadius) {
+    if (segments < 3 || !std::isfinite(innerRadius) || !std::isfinite(outerRadius) ||
+        innerRadius <= 0.0f || outerRadius <= innerRadius)
+        throw std::invalid_argument("ring needs 3+ segments and 0 < inner radius < outer radius");
+    MeshData m;
+    for (int i = 0; i <= segments; ++i) {
+        float v = float(i) / float(segments);
+        float angle = 2.0f * kPi * v;
+        glm::vec3 direction(std::cos(angle), 0.0f, -std::sin(angle));
+        m.vertices.push_back({direction * innerRadius, {0, 1, 0}, {0, v}});
+        m.vertices.push_back({direction * outerRadius, {0, 1, 0}, {1, v}});
+        if (i < segments) {
+            unsigned a = 2 * i;
+            m.indices.insert(m.indices.end(), {a, a + 1, a + 2, a + 2, a + 1, a + 3});
+        }
+    }
+    return m;
+}

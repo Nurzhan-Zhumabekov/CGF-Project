@@ -48,14 +48,21 @@ add_executable(solar_system
   src/Mesh.cpp
   src/Texture.cpp
   src/Skybox.cpp
+  src/SaturnRings.cpp
   src/UI.cpp)
 target_include_directories(solar_system PRIVATE third_party/stb)
 target_link_libraries(solar_system PRIVATE core glfw glad imgui)
 
 # Shaders and textures are copied next to the executable after every build.
-add_custom_command(TARGET solar_system POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:solar_system>/shaders
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:solar_system>/assets)
+set(resource_output_dir "${CMAKE_CURRENT_BINARY_DIR}")
+if(CMAKE_CONFIGURATION_TYPES)
+  string(APPEND resource_output_dir "/$<CONFIG>")
+endif()
+add_custom_target(solar_system_resources ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/shaders" "${resource_output_dir}/shaders"
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets" "${resource_output_dir}/assets"
+  VERBATIM)
+add_dependencies(solar_system solar_system_resources)
 
 enable_testing()
 add_executable(core_tests tests/test_core.cpp)

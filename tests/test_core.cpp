@@ -33,6 +33,34 @@ static void sphereTrianglesFaceOutward() {  // CCW winding seen from outside, ne
     CHECK(inward == 0);
 }
 
+static void ringHasHoleAndConsistentWinding() {
+    MeshData m = makeRing(64, 1.25f, 2.4f);
+    CHECK(m.vertices.size() == 130u);
+    CHECK(m.indices.size() == 384u);
+    for (const auto& v : m.vertices) {
+        CHECK(near(v.pos.y, 0.0f));
+        CHECK(near(glm::length(v.pos), v.uv.x == 0.0f ? 1.25f : 2.4f));
+        CHECK(v.uv.y >= 0.0f && v.uv.y <= 1.0f);
+        CHECK(near(v.normal.y, 1.0f));
+    }
+    for (size_t i = 0; i < m.indices.size(); i += 3) {
+        CHECK(m.indices[i] < m.vertices.size() && m.indices[i + 1] < m.vertices.size() &&
+              m.indices[i + 2] < m.vertices.size());
+        glm::vec3 a = m.vertices.at(m.indices[i]).pos, b = m.vertices.at(m.indices[i + 1]).pos;
+        glm::vec3 c = m.vertices.at(m.indices[i + 2]).pos;
+        CHECK(glm::cross(b - a, c - a).y > 0.0f);
+        CHECK(glm::length((a + b + c) / 3.0f) > 1.2f);  // no triangles across the central hole
+    }
+    CHECK(near(glm::length(m.vertices[0].pos - m.vertices[128].pos), 0.0f));
+    CHECK(near(glm::length(m.vertices[1].pos - m.vertices[129].pos), 0.0f));
+    bool rejected = false;
+    try { makeRing(2, 1.25f, 2.4f); } catch (const std::invalid_argument&) { rejected = true; }
+    CHECK(rejected);
+    rejected = false;
+    try { makeRing(64, 2.4f, 1.25f); } catch (const std::invalid_argument&) { rejected = true; }
+    CHECK(rejected);
+}
+
 static void sphereHasNoZeroAreaTriangles() {  // the pole caps used to emit one flat triangle per sector
     MeshData m = makeSphere(16, 32);
     int flat = 0;
@@ -139,6 +167,23 @@ static void findBodiesByName() {
     CHECK(s.find("Pluto") == nullptr);
 }
 
+static void ringsFollowSaturnWithFixedTilt() {
+    SolarSystem s;
+    SceneNode& saturn = s.planet(5);
+    MeshData ring = makeRing(64, 1.25f, 2.4f);
+    s.update(0.0f);
+    glm::vec3 axis0 = saturn.spinAxis();
+    for (float days : {0.0f, 100.0f, saturn.params().orbitPeriod / 4.0f}) {
+        s.update(days);
+        CHECK(near(glm::dot(saturn.spinAxis(), axis0), 1.0f));
+        for (const auto& v : ring.vertices) {
+            glm::vec3 offset = glm::vec3(saturn.model() * glm::vec4(v.pos, 1.0f)) - saturn.position();
+            CHECK(near(glm::dot(offset, axis0), 0.0f));  // ring stays in Saturn's equatorial plane
+            CHECK(near(glm::length(offset), glm::length(v.pos) * saturn.params().radius));
+        }
+    }
+}
+
 static void followCameraConvergesToTarget() {
     Camera c;
     c.follow(10.0f);
@@ -160,6 +205,7 @@ static void cameraSmoothingIsFrameRateIndependent() {
 int main() {
     sphereHasExpectedTopology();
     sphereTrianglesFaceOutward();
+    ringHasHoleAndConsistentWinding();
     sphereHasNoZeroAreaTriangles();
     sphereRejectsBadArguments();
     worldIsParentWorldTimesLocal();
@@ -171,6 +217,7 @@ int main() {
     moonIsTidallyLocked();
     planetsStartSpreadOut();
     findBodiesByName();
+    ringsFollowSaturnWithFixedTilt();
     followCameraConvergesToTarget();
     cameraSmoothingIsFrameRateIndependent();
     if (failures == 0) std::printf("all core tests passed\n");
