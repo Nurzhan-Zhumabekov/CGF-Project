@@ -6,7 +6,7 @@
 class SolarSystem {
 public:
     SolarSystem();
-    void update(float days) { sun_->update(days); }
+    void update(double days) { sun_->update(days); }  // days since J2000, see SimClock
     void forEach(const std::function<void(SceneNode&)>& fn) const;  // parents before children
     SceneNode* find(const std::string& name) const;                  // nullptr if there is no such body
 

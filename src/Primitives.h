@@ -8,3 +8,5 @@ MeshData makeSphere(int stacks, int sectors);
 MeshData makeCube();
 // Unit circle in the XZ plane, drawn as GL_LINE_LOOP for orbit lines.
 MeshData makeCircle(int segments);
+// Annulus in the XZ plane. u runs from inner to outer radius, v around the ring.
+MeshData makeRing(int segments, float innerRadius, float outerRadius);

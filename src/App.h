@@ -1,7 +1,9 @@
 #pragma once
 #include "Camera.h"
 #include "Mesh.h"
+#include "SaturnRings.h"
 #include "Shader.h"
+#include "SimClock.h"
 #include "Skybox.h"
 #include "SolarSystem.h"
 #include "Texture.h"
@@ -31,10 +33,11 @@ private:
     Shader planetShader_, lineShader_;
     Mesh sphere_, circle_;
     Skybox skybox_;
+    SaturnRings rings_;
     std::map<std::string, Texture> textures_;
     UI ui_;
 
     SceneNode* followed_ = nullptr;
-    float simDays_ = 0.0f;
+    SimClock clock_;
     float fps_ = 0.0f;
 };

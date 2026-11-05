@@ -31,10 +31,10 @@ public:
 
     SceneNode* addChild(BodyParams params);
     // Recomputes the matrices of this node and all descendants at simulation time `days`.
-    void update(float days);
+    void update(double days);
 
-    float orbitAngle(float days) const;  // radians, includes the starting phase
-    float spinAngle(float days) const;   // radians
+    float orbitAngle(double days) const;  // radians, includes the starting phase
+    float spinAngle(double days) const;   // radians
 
     const glm::mat4& localMatrix() const { return local_; }
     const glm::mat4& worldMatrix() const { return world_; }

@@ -11,19 +11,28 @@ SceneNode* SceneNode::addChild(BodyParams params) {
     return children_.back().get();
 }
 
-float SceneNode::orbitAngle(float days) const {
-    float phase = glm::radians(params_.orbitPhaseDeg);
-    return params_.orbitPeriod > 0.0f ? phase + kTwoPi * days / params_.orbitPeriod : phase;
+// Fraction of a full turn completed after `days`, in [0, 1). Computed in double and wrapped before
+// converting to float: 2π * days / period itself can reach millions of radians, where a float can
+// only step in quarter-radian increments and a fast-spinning planet would visibly stutter.
+static float turnFraction(double days, float period) {
+    double turns = std::fmod(days / double(period), 1.0);
+    return float(turns < 0.0 ? turns + 1.0 : turns);  // negative period = retrograde, same rotation
 }
 
-float SceneNode::spinAngle(float days) const {
+// angle = phase + 2π * days / period
+float SceneNode::orbitAngle(double days) const {
+    float phase = glm::radians(params_.orbitPhaseDeg);
+    return params_.orbitPeriod > 0.0f ? phase + kTwoPi * turnFraction(days, params_.orbitPeriod) : phase;
+}
+
+float SceneNode::spinAngle(double days) const {
     // Starting the spin at the orbit phase makes a tidally locked body (spin period = orbit period,
     // like the Moon) face its parent from the first frame.
     float phase = glm::radians(params_.orbitPhaseDeg);
-    return params_.spinPeriod != 0.0f ? phase + kTwoPi * days / params_.spinPeriod : phase;
+    return params_.spinPeriod != 0.0f ? phase + kTwoPi * turnFraction(days, params_.spinPeriod) : phase;
 }
 
-void SceneNode::update(float days) {
+void SceneNode::update(double days) {
     const glm::mat4 I(1.0f);
     const glm::vec3 up(0, 1, 0), forward(0, 0, 1);
 

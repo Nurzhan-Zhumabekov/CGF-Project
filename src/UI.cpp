@@ -1,4 +1,5 @@
 #include "UI.h"
+#include "SimClock.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -18,7 +19,7 @@ UI::~UI() {
     ImGui::DestroyContext();
 }
 
-void UI::draw(UIState& s, float fps, const std::string& cameraInfo) {
+void UI::draw(UIState& s, SimClock& clock, float fps, const std::string& cameraInfo) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -27,8 +28,13 @@ void UI::draw(UIState& s, float fps, const std::string& cameraInfo) {
     ImGui::Text("FPS: %.0f", fps);
     ImGui::Text("Camera: %s", cameraInfo.c_str());
     ImGui::Separator();
-    ImGui::SliderFloat("Time (days/s)", &s.timeScale, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
-    ImGui::Checkbox("Pause (Space)", &s.paused);
+    ImGui::Text("Date: %s", clock.date().c_str());
+    float scale = clock.scale();
+    if (ImGui::SliderFloat("Time (days/s)", &scale, SimClock::kMinScale, SimClock::kMaxScale, "%.1f",
+                           ImGuiSliderFlags_Logarithmic))
+        clock.setScale(scale);
+    bool paused = clock.paused();
+    if (ImGui::Checkbox("Pause (Space)", &paused)) clock.setPaused(paused);
     ImGui::Checkbox("Second light (L)", &s.fillLight);
     ImGui::Checkbox("Orbit lines (O)", &s.orbitLines);
     ImGui::Checkbox("VSync", &s.vsync);

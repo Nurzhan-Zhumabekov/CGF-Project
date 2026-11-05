@@ -27,7 +27,8 @@ App::App()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
-    system_.update(simDays_);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    system_.update(clock_.days());
 }
 
 void App::focusOn(SceneNode* node) {
@@ -47,12 +48,12 @@ void App::handleInput(float dt) {
         followed_ = nullptr;
         camera_.setFree();
     }
-    if (window_.keyPressed(GLFW_KEY_SPACE)) state_.paused = !state_.paused;
+    if (window_.keyPressed(GLFW_KEY_SPACE)) clock_.togglePause();
     if (window_.keyPressed(GLFW_KEY_L)) state_.fillLight = !state_.fillLight;
     if (window_.keyPressed(GLFW_KEY_O)) state_.orbitLines = !state_.orbitLines;
     if (window_.keyPressed(GLFW_KEY_H)) state_.showHelp = !state_.showHelp;
-    if (window_.keyPressed(GLFW_KEY_RIGHT_BRACKET)) state_.timeScale = std::clamp(state_.timeScale * 2.0f, 0.1f, 2000.0f);
-    if (window_.keyPressed(GLFW_KEY_LEFT_BRACKET)) state_.timeScale = std::clamp(state_.timeScale * 0.5f, 0.1f, 2000.0f);
+    if (window_.keyPressed(GLFW_KEY_RIGHT_BRACKET)) clock_.faster();
+    if (window_.keyPressed(GLFW_KEY_LEFT_BRACKET)) clock_.slower();
 
     // Camera: speeds scale with dt, so motion is the same at any frame rate (C1).
     if (!io.WantCaptureMouse) {
@@ -67,8 +68,8 @@ void App::handleInput(float dt) {
     axes.y = float(window_.keyDown(GLFW_KEY_E)) - float(window_.keyDown(GLFW_KEY_Q));
     camera_.move(axes, dt, window_.keyDown(GLFW_KEY_LEFT_SHIFT));
 
-    if (!state_.paused) simDays_ += dt * state_.timeScale;
-    system_.update(simDays_);
+    clock_.advance(dt);
+    system_.update(clock_.days());
     if (followed_) camera_.setTarget(followed_->position());
     camera_.update(dt);
 }
@@ -122,6 +123,7 @@ void App::render() {
     drawBodies();
     if (state_.orbitLines) drawOrbitLines(view, proj);
     skybox_.draw(view, proj);
+    rings_.draw(system_.planet(5), view, proj, system_.sun().position(), camera_.position(), state_.fillLight);
 }
 
 void App::run() {
@@ -137,7 +139,7 @@ void App::run() {
         handleInput(dt);
         render();
         std::string cam = followed_ ? "following " + followed_->params().name : "free fly";
-        ui_.draw(state_, fps_, cam);
+        ui_.draw(state_, clock_, fps_, cam);
         window_.swap();
 
         if (state_.vsync != vsync) {
