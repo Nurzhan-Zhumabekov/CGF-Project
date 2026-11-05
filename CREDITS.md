@@ -14,7 +14,10 @@ GLFW, GLM and Dear ImGui were obtained from Ubuntu packages at archive.ubuntu.co
 
 ## Textures and assets
 
-The script `tools/gen_textures.py` creates every texture in `assets/textures/` using procedural noise. No third-party assets are included. Record the name, author, link and license here whenever an external texture or model is added.
+The script `tools/gen_textures.py` creates the planet textures and skybox in `assets/textures/` using procedural noise.
+`tools/gen_ring_texture.py` creates `saturn_rings.png`, an original procedural RGBA radial profile
+with bands, transparent gaps and soft edges. Ring geometry is generated in `makeRing`.
+No third-party assets are included. Record the name, author, link and license here whenever an external texture or model is added.
 
 ## Tutorials and references
 

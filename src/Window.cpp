@@ -15,6 +15,8 @@ Window::Window(int width, int height, const std::string& title) {
         glfwTerminate();
         throw std::runtime_error("cannot create a window with an OpenGL 3.3 core context");
     }
+    // Keep short key taps until pollEvents reads them, even if released between frames.
+    glfwSetInputMode(win_, GLFW_STICKY_KEYS, GLFW_TRUE);
     glfwMakeContextCurrent(win_);
     if (!gladLoadGL(glfwGetProcAddress)) throw std::runtime_error("gladLoadGL failed");
     glfwSetWindowUserPointer(win_, this);

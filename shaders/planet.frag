@@ -44,7 +44,7 @@ void main() {
     }
     if (uUseNight == 1) {  // stretch goal: city lights fade in as the surface turns away from the Sun
         vec3 L = normalize(uSunPos - vWorldPos);
-        float night = 1.0 - smoothstep(0.0, 0.25, max(dot(N, L), 0.0));
+        float night = 1.0 - smoothstep(-0.1, 0.2, dot(N, L));
         color += texture(uNight, vUV).rgb * night;
     }
     FragColor = vec4(color, 1.0);

@@ -3,7 +3,7 @@
 #include "Shader.h"
 #include "Texture.h"
 
-// Star-field cube drawn last with depth func LEQUAL; the view matrix loses its translation.
+// Star-field cube drawn before transparency with LEQUAL and no depth writes; view has no translation.
 class Skybox {
 public:
     Skybox();

@@ -6,7 +6,7 @@
 // 2D texture with generated mipmaps. Loaded once at start-up, never per frame.
 class Texture {
 public:
-    explicit Texture(const std::string& path);
+    explicit Texture(const std::string& path, GLenum wrapS = GL_REPEAT);
     ~Texture();
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
