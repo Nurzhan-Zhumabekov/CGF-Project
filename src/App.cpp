@@ -18,12 +18,13 @@ App::App()
       lineShader_("shaders/line.vert", "shaders/line.frag"),
       sphere_(makeSphere(48, 96)),
       circle_(makeCircle(180), GL_LINE_LOOP),
+      belt_(system_.planet(3), system_.planet(4)),  // between Mars and Jupiter
       ui_(window_.handle()) {
     system_.forEach([this](SceneNode& n) {
         std::string key = lower(n.params().name);
-        textures_.emplace(key, Texture("assets/textures/" + key + ".png"));
+        textures_.emplace(key, Texture("assets/textures/" + key + ".jpg"));
     });
-    textures_.emplace("earth_night", Texture("assets/textures/earth_night.png"));
+    textures_.emplace("earth_night", Texture("assets/textures/earth_night.jpg"));
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
@@ -33,44 +34,64 @@ App::App()
 
 void App::focusOn(SceneNode* node) {
     followed_ = node;
-    camera_.follow(node->params().radius * 4.0f + 3.0f);
+    const float radius = node->params().radius;
+    camera_.follow(radius * 4.0f + 3.0f, radius * 1.3f + 0.3f);  // the wheel stops just above the surface
 }
 
 void App::handleInput(float dt) {
     ImGuiIO& io = ImGui::GetIO();
     if (window_.keyPressed(GLFW_KEY_ESCAPE)) window_.close();
 
-    // Scene interactions (R6): focus a planet, change time, toggle light / orbit lines / pause.
+    // Scene interactions (R6): focus a planet, change time, toggle light / orbit lines / belt / pause.
+    // Skipped while a panel field has keyboard focus, so typing a number there does not move the camera.
+    const bool keys = !io.WantCaptureKeyboard;
+    auto pressed = [&](int key) { return keys && window_.keyPressed(key); };
     for (int i = 0; i < system_.planetCount(); ++i)
-        if (window_.keyPressed(GLFW_KEY_1 + i)) focusOn(&system_.planet(i));
-    if (window_.keyPressed(GLFW_KEY_9)) focusOn(&system_.moon());
-    if (window_.keyPressed(GLFW_KEY_0) || window_.keyPressed(GLFW_KEY_F)) {
+        if (pressed(GLFW_KEY_1 + i)) focusOn(&system_.planet(i));
+    if (pressed(GLFW_KEY_9)) focusOn(&system_.moon());
+    if (pressed(GLFW_KEY_0) || pressed(GLFW_KEY_F)) {
         followed_ = nullptr;
         camera_.setFree();
     }
-    if (window_.keyPressed(GLFW_KEY_SPACE)) clock_.togglePause();
-    if (window_.keyPressed(GLFW_KEY_L)) state_.fillLight = !state_.fillLight;
-    if (window_.keyPressed(GLFW_KEY_O)) state_.orbitLines = !state_.orbitLines;
-    if (window_.keyPressed(GLFW_KEY_H)) state_.showHelp = !state_.showHelp;
-    if (window_.keyPressed(GLFW_KEY_RIGHT_BRACKET)) clock_.faster();
-    if (window_.keyPressed(GLFW_KEY_LEFT_BRACKET)) clock_.slower();
+    if (pressed(GLFW_KEY_SPACE)) clock_.togglePause();
+    if (pressed(GLFW_KEY_L)) state_.fillLight = !state_.fillLight;
+    if (pressed(GLFW_KEY_O)) state_.orbitLines = !state_.orbitLines;
+    if (pressed(GLFW_KEY_B)) state_.asteroids = !state_.asteroids;
+    if (pressed(GLFW_KEY_H)) state_.showHelp = !state_.showHelp;
+    if (pressed(GLFW_KEY_V)) state_.vsync = !state_.vsync;
+    if (pressed(GLFW_KEY_RIGHT_BRACKET)) clock_.faster();
+    if (pressed(GLFW_KEY_LEFT_BRACKET)) clock_.slower();
 
     // Camera: speeds scale with dt, so motion is the same at any frame rate (C1).
-    if (!io.WantCaptureMouse) {
-        if (window_.mouseDown(GLFW_MOUSE_BUTTON_RIGHT)) camera_.look(window_.mouseDelta().x, window_.mouseDelta().y);
-        camera_.zoom(window_.takeScroll());
-    } else {
-        window_.takeScroll();
+    // Mouse look starts with the right button outside the panel and lasts until the button is released.
+    // The cursor is captured meanwhile, so a long turn is not cut short by the edge of the screen.
+    const bool rightButton = window_.mouseDown(GLFW_MOUSE_BUTTON_RIGHT);
+    if (rightButton && !looking_ && !io.WantCaptureMouse) {
+        looking_ = true;
+        window_.captureCursor(true);
+    } else if (!rightButton && looking_) {
+        looking_ = false;
+        window_.captureCursor(false);
+    } else if (looking_) {
+        camera_.look(window_.mouseDelta().x, window_.mouseDelta().y);
     }
+    const float scroll = window_.takeScroll();
+    if (!io.WantCaptureMouse) camera_.zoom(scroll);
+    auto held = [&](int key) { return keys && window_.keyDown(key); };
     glm::vec3 axes(0.0f);
-    axes.z = float(window_.keyDown(GLFW_KEY_W)) - float(window_.keyDown(GLFW_KEY_S));
-    axes.x = float(window_.keyDown(GLFW_KEY_D)) - float(window_.keyDown(GLFW_KEY_A));
-    axes.y = float(window_.keyDown(GLFW_KEY_E)) - float(window_.keyDown(GLFW_KEY_Q));
-    camera_.move(axes, dt, window_.keyDown(GLFW_KEY_LEFT_SHIFT));
+    axes.z = float(held(GLFW_KEY_W)) - float(held(GLFW_KEY_S));
+    axes.x = float(held(GLFW_KEY_D)) - float(held(GLFW_KEY_A));
+    axes.y = float(held(GLFW_KEY_E)) - float(held(GLFW_KEY_Q));
+    camera_.move(axes, dt, held(GLFW_KEY_LEFT_SHIFT));
 
     clock_.advance(dt);
     system_.update(clock_.days());
-    if (followed_) camera_.setTarget(followed_->position());
+    if (followed_) {
+        camera_.setTarget(followed_->position());
+        const SceneNode* parent = followed_->parent();
+        if (parent && parent->parent()) camera_.setPivot(parent->position());  // a moon: ride along its orbit
+        else camera_.clearPivot();
+    }
     camera_.update(dt);
 }
 
@@ -111,19 +132,22 @@ void App::render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 view = camera_.view(), proj = camera_.projection(h > 0 ? float(w) / float(h) : 1.0f);
+    SceneLights lights;
+    lights.sunPos = system_.sun().position();
+    lights.fillPos = camera_.position();  // the lantern travels with the camera
+    lights.fillOn = state_.fillLight;
+
     planetShader_.use();
     planetShader_.set("uView", view);
     planetShader_.set("uProj", proj);
     planetShader_.set("uViewPos", camera_.position());
-    planetShader_.set("uSunPos", system_.sun().position());
-    planetShader_.set("uSunColor", glm::vec3(1.0f, 0.96f, 0.88f));
-    planetShader_.set("uFillOn", int(state_.fillLight));
-    planetShader_.set("uFillPos", camera_.position());
-    planetShader_.set("uFillColor", glm::vec3(0.35f, 0.45f, 0.65f));
+    lights.apply(planetShader_);
     drawBodies();
+    if (state_.asteroids)  // opaque, so it goes with the planets, before the skybox and the transparent rings
+        belt_.draw(state_.asteroidCount, clock_.days(), view, proj, camera_.position(), lights, texture("moon"));
     if (state_.orbitLines) drawOrbitLines(view, proj);
     skybox_.draw(view, proj);
-    rings_.draw(system_.planet(5), view, proj, system_.sun().position(), camera_.position(), state_.fillLight);
+    rings_.draw(system_.planet(5), view, proj, lights);
 }
 
 void App::run() {
