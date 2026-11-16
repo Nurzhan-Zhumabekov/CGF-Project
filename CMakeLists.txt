@@ -37,7 +37,8 @@ add_library(core STATIC
   src/SceneNode.cpp
   src/SimClock.cpp
   src/SolarSystem.cpp
-  src/Camera.cpp)
+  src/Camera.cpp
+  src/AsteroidBeltData.cpp)
 target_include_directories(core PUBLIC src)
 target_link_libraries(core PUBLIC glm)
 
@@ -50,6 +51,7 @@ add_executable(solar_system
   src/Texture.cpp
   src/Skybox.cpp
   src/SaturnRings.cpp
+  src/AsteroidBelt.cpp
   src/UI.cpp)
 target_include_directories(solar_system PRIVATE third_party/stb)
 target_link_libraries(solar_system PRIVATE core glfw glad imgui)
@@ -69,3 +71,6 @@ enable_testing()
 add_executable(core_tests tests/test_core.cpp)
 target_link_libraries(core_tests PRIVATE core)
 add_test(NAME core_tests COMMAND core_tests)
+add_executable(belt_tests tests/test_belt.cpp)
+target_link_libraries(belt_tests PRIVATE core)
+add_test(NAME belt_tests COMMAND belt_tests)

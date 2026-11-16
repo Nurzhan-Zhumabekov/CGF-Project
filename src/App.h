@@ -1,4 +1,5 @@
 #pragma once
+#include "AsteroidBelt.h"
 #include "Camera.h"
 #include "Mesh.h"
 #include "SaturnRings.h"
@@ -34,10 +35,12 @@ private:
     Mesh sphere_, circle_;
     Skybox skybox_;
     SaturnRings rings_;
+    AsteroidBelt belt_;
     std::map<std::string, Texture> textures_;
     UI ui_;
 
     SceneNode* followed_ = nullptr;
+    bool looking_ = false;  // right mouse button held: the cursor is captured and turns the camera
     SimClock clock_;
     float fps_ = 0.0f;
 };

@@ -1,4 +1,5 @@
 #pragma once
+#include "AsteroidBeltData.h"
 #include <string>
 
 class SimClock;
@@ -9,6 +10,8 @@ struct GLFWwindow;
 struct UIState {
     bool fillLight = true;     // second light (lantern at the camera)
     bool orbitLines = true;
+    bool asteroids = true;     // asteroid belt (instanced)
+    int asteroidCount = kDefaultAsteroids;  // how many rocks of the belt are drawn
     bool vsync = true;
     bool showHelp = true;
 };

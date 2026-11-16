@@ -1,4 +1,5 @@
 #pragma once
+#include "Lights.h"
 #include "Mesh.h"
 #include "SceneNode.h"
 #include "Shader.h"
@@ -9,7 +10,7 @@ class SaturnRings {
 public:
     SaturnRings();
     void draw(const SceneNode& saturn, const glm::mat4& view, const glm::mat4& projection,
-              const glm::vec3& sunPos, const glm::vec3& viewPos, bool fillLight) const;
+              const SceneLights& lights) const;
 
 private:
     Shader shader_;

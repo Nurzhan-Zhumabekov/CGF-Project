@@ -19,6 +19,8 @@ public:
     void pollEvents();  // call once per frame: updates key edges, mouse delta
     void swap() { glfwSwapBuffers(win_); }
     void setVsync(bool on) { glfwSwapInterval(on ? 1 : 0); }
+    // Hides the cursor and lets it move without limit (mouse look); GLFW puts it back where it was on release.
+    void captureCursor(bool on) { glfwSetInputMode(win_, GLFW_CURSOR, on ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL); }
     void setTitle(const std::string& t) { glfwSetWindowTitle(win_, t.c_str()); }
     void framebufferSize(int& w, int& h) const { glfwGetFramebufferSize(win_, &w, &h); }
 

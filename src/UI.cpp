@@ -37,7 +37,12 @@ void UI::draw(UIState& s, SimClock& clock, float fps, const std::string& cameraI
     if (ImGui::Checkbox("Pause (Space)", &paused)) clock.setPaused(paused);
     ImGui::Checkbox("Second light (L)", &s.fillLight);
     ImGui::Checkbox("Orbit lines (O)", &s.orbitLines);
-    ImGui::Checkbox("VSync", &s.vsync);
+    ImGui::Checkbox("Asteroid belt (B)", &s.asteroids);
+    if (s.asteroids) {
+        ImGui::SliderInt("Asteroids", &s.asteroidCount, 0, kMaxAsteroids);
+        ImGui::TextDisabled("%d rocks in 1 instanced draw call", s.asteroidCount);
+    }
+    ImGui::Checkbox("VSync (V)", &s.vsync);
     ImGui::Checkbox("Help (H)", &s.showHelp);
     if (s.showHelp) {
         ImGui::Separator();
@@ -47,6 +52,10 @@ void UI::draw(UIState& s, SimClock& clock, float fps, const std::string& cameraI
         ImGui::TextUnformatted("WASD QE fly, Shift = fast");
         ImGui::TextUnformatted("RMB drag look, wheel zoom");
         ImGui::TextUnformatted("[ ]  time x0.5 / x2");
+        ImGui::TextUnformatted("Space pause");
+        ImGui::TextUnformatted("L    second light on / off");
+        ImGui::TextUnformatted("O    orbit lines, B asteroid belt");
+        ImGui::TextUnformatted("V    VSync, H hide this help");
         ImGui::TextUnformatted("Esc  quit");
     }
     ImGui::End();
