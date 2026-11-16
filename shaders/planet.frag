@@ -2,6 +2,7 @@
 in vec3 vWorldPos;
 in vec3 vNormal;
 in vec2 vUV;
+in vec3 vTint;
 out vec4 FragColor;
 
 uniform sampler2D uDiffuse;
@@ -27,7 +28,7 @@ vec3 blinnPhong(vec3 N, vec3 V, vec3 lightPos, vec3 lightColor, float attenuatio
 }
 
 void main() {
-    vec3 albedo = texture(uDiffuse, vUV).rgb;
+    vec3 albedo = texture(uDiffuse, vUV).rgb * vTint;
     if (uEmissive == 1) {
         FragColor = vec4(albedo * 1.25, 1.0);
         return;
