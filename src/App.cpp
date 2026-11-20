@@ -25,6 +25,8 @@ App::App()
         textures_.emplace(key, Texture("assets/textures/" + key + ".jpg"));
     });
     textures_.emplace("earth_night", Texture("assets/textures/earth_night.jpg"));
+    // Relief for normal mapping, derived from the brightness of the Earth map (no extra asset to load).
+    textures_.emplace("earth_normal", Texture::normalMapFromImage("assets/textures/earth.jpg", 10.0f));
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
@@ -59,6 +61,7 @@ void App::handleInput(float dt) {
     if (pressed(GLFW_KEY_B)) state_.asteroids = !state_.asteroids;
     if (pressed(GLFW_KEY_H)) state_.showHelp = !state_.showHelp;
     if (pressed(GLFW_KEY_V)) state_.vsync = !state_.vsync;
+    if (pressed(GLFW_KEY_N)) state_.normalMap = !state_.normalMap;
     if (pressed(GLFW_KEY_RIGHT_BRACKET)) clock_.faster();
     if (pressed(GLFW_KEY_LEFT_BRACKET)) clock_.slower();
 
@@ -98,13 +101,16 @@ void App::handleInput(float dt) {
 void App::drawBodies() {
     planetShader_.set("uDiffuse", 0);
     planetShader_.set("uNight", 1);
+    planetShader_.set("uNormalMap", 2);
     system_.forEach([this](SceneNode& n) {
         const std::string name = n.params().name;
         const bool earth = name == "Earth";
         texture(lower(name)).bind(0);
         if (earth) texture("earth_night").bind(1);
+        if (earth) texture("earth_normal").bind(2);
         planetShader_.set("uEmissive", int(name == "Sun"));
         planetShader_.set("uUseNight", int(earth));
+        planetShader_.set("uUseNormalMap", int(earth && state_.normalMap));
         planetShader_.set("uShininess", earth ? 48.0f : 16.0f);
         planetShader_.set("uSpecStrength", earth ? 0.5f : 0.08f);
         planetShader_.set("uModel", n.model());

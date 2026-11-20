@@ -38,7 +38,8 @@ add_library(core STATIC
   src/SimClock.cpp
   src/SolarSystem.cpp
   src/Camera.cpp
-  src/AsteroidBeltData.cpp)
+  src/AsteroidBeltData.cpp
+  src/NormalMap.cpp)
 target_include_directories(core PUBLIC src)
 target_link_libraries(core PUBLIC glm)
 

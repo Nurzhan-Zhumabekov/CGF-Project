@@ -1,5 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "Texture.h"
+#include "NormalMap.h"
 #include "Utils.h"
 #include <stb_image.h>
 #include <memory>
@@ -13,12 +14,26 @@ Texture::Texture(const std::string& path, GLenum wrapS) {
     // Normalize grayscale, gray+alpha, RGB and RGBA to the same upload format.
     Image px(stbi_load(res::path(path).c_str(), &w, &h, &ch, STBI_rgb_alpha), stbi_image_free);
     if (!px) throw std::runtime_error("cannot load texture " + path);
+    upload(w, h, px.get(), wrapS);
+}
+
+Texture Texture::normalMapFromImage(const std::string& path, float strength) {
+    stbi_set_flip_vertically_on_load(true);  // same row order as the colour texture
+    int w, h, ch;
+    Image px(stbi_load(res::path(path).c_str(), &w, &h, &ch, STBI_rgb_alpha), stbi_image_free);
+    if (!px) throw std::runtime_error("cannot load texture " + path);
+    Texture t;
+    t.upload(w, h, normalMapFromHeight(px.get(), w, h, strength).data(), GL_REPEAT);
+    return t;
+}
+
+void Texture::upload(int w, int h, const unsigned char* rgba, GLenum wrapS) {
     glGenTextures(1, &id_);
     glBindTexture(GL_TEXTURE_2D, id_);
     GLint alignment;
     glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, px.get());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
     glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);

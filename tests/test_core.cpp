@@ -1,5 +1,6 @@
 // Minimal assert-based unit tests for the OpenGL-free core (geometry, scene graph, camera).
 #include "Camera.h"
+#include "NormalMap.h"
 #include "Primitives.h"
 #include "SimClock.h"
 #include "SolarSystem.h"
@@ -433,7 +434,51 @@ static void cameraSmoothingIsFrameRateIndependent() {
     CHECK(near(glm::length(a.position() - b.position()), 0.0f, 0.1f));  // same wall-clock second
 }
 
+// Normal map from a height field: flat stays (128, 128, 255), a slope tilts the normal away from
+// the uphill side, u wraps across the seam, and bad input is rejected.
+static void normalMapFollowsTheSlope() {
+    auto image = [](int w, int h, auto height) {
+        std::vector<unsigned char> px(size_t(4 * w * h));
+        for (int y = 0; y < h; ++y)
+            for (int x = 0; x < w; ++x) {
+                unsigned char g = (unsigned char)height(x, y);
+                unsigned char* p = &px[size_t(4 * (y * w + x))];
+                p[0] = p[1] = p[2] = g;
+                p[3] = 255;
+            }
+        return px;
+    };
+    std::vector<unsigned char> flat = image(8, 4, [](int, int) { return 100; });
+    std::vector<unsigned char> n = normalMapFromHeight(flat.data(), 8, 4, 10.0f);
+    CHECK(n.size() == size_t(4 * 8 * 4));
+    for (size_t i = 0; i < n.size(); i += 4) CHECK(n[i] == 128 && n[i + 1] == 128 && n[i + 2] == 255 && n[i + 3] == 255);
+
+    // Height grows with x (east) inside the image: the normal leans west (red below 128), not north.
+    std::vector<unsigned char> east = image(8, 4, [](int x, int) { return 20 * x; });
+    n = normalMapFromHeight(east.data(), 8, 4, 10.0f);
+    const unsigned char* mid = &n[size_t(4 * (1 * 8 + 3))];
+    CHECK(mid[0] < 128 && mid[1] == 128 && mid[2] < 255);
+    // At x = 0 the left neighbour is x = 7 (the seam wraps), which is higher: the normal leans east.
+    CHECK(n[size_t(4 * (1 * 8 + 0))] > 128);
+
+    // Height grows with the row (v, north): the normal leans south (green below 128).
+    std::vector<unsigned char> north = image(8, 4, [](int, int y) { return 50 * y; });
+    n = normalMapFromHeight(north.data(), 8, 4, 10.0f);
+    CHECK(n[size_t(4 * (1 * 8 + 3)) + 1] < 128 && n[size_t(4 * (1 * 8 + 3))] == 128);
+
+    // Strength 0 gives a flat map; negative strength and empty images are errors.
+    n = normalMapFromHeight(east.data(), 8, 4, 0.0f);
+    CHECK(n[size_t(4 * (1 * 8 + 3))] == 128 && n[size_t(4 * (1 * 8 + 3)) + 2] == 255);
+    bool threw = false;
+    try { normalMapFromHeight(east.data(), 8, 4, -1.0f); } catch (const std::invalid_argument&) { threw = true; }
+    CHECK(threw);
+    threw = false;
+    try { normalMapFromHeight(east.data(), 0, 4, 1.0f); } catch (const std::invalid_argument&) { threw = true; }
+    CHECK(threw);
+}
+
 int main() {
+    normalMapFollowsTheSlope();
     sphereHasExpectedTopology();
     sphereTrianglesFaceOutward();
     ringHasHoleAndConsistentWinding();

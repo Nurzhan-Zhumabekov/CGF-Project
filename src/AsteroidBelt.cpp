@@ -59,6 +59,7 @@ void AsteroidBelt::draw(int count, double days, const glm::mat4& view, const glm
     lights.apply(shader_);
     shader_.set("uEmissive", 0);
     shader_.set("uUseNight", 0);
+    shader_.set("uUseNormalMap", 0);
     shader_.set("uShininess", 8.0f);       // rough rock: a wide, weak highlight
     shader_.set("uSpecStrength", 0.04f);
     shader_.set("uDiffuse", 0);

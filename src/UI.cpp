@@ -42,6 +42,7 @@ void UI::draw(UIState& s, SimClock& clock, float fps, const std::string& cameraI
         ImGui::SliderInt("Asteroids", &s.asteroidCount, 0, kMaxAsteroids);
         ImGui::TextDisabled("%d rocks in 1 instanced draw call", s.asteroidCount);
     }
+    ImGui::Checkbox("Earth relief (N)", &s.normalMap);
     ImGui::Checkbox("VSync (V)", &s.vsync);
     ImGui::Checkbox("Help (H)", &s.showHelp);
     if (s.showHelp) {
@@ -55,6 +56,7 @@ void UI::draw(UIState& s, SimClock& clock, float fps, const std::string& cameraI
         ImGui::TextUnformatted("Space pause");
         ImGui::TextUnformatted("L    second light on / off");
         ImGui::TextUnformatted("O    orbit lines, B asteroid belt");
+        ImGui::TextUnformatted("N    Earth relief (normal map)");
         ImGui::TextUnformatted("V    VSync, H hide this help");
         ImGui::TextUnformatted("Esc  quit");
     }

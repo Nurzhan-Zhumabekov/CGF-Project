@@ -40,6 +40,7 @@ Run the unit tests with `ctest --test-dir build` (add `-C Release` with Visual S
 | O | Orbit lines |
 | B | Asteroid belt |
 | H | Help in the panel |
+| N | Earth relief (normal map) on / off |
 | V | VSync on / off |
 | Esc | Quit |
 
@@ -56,6 +57,9 @@ The ImGui panel also provides time-speed and VSync controls, the scene toggles a
 - FPS in the window title and in the panel (R7).
 - Planet spins are slowed on screen when they are fast (Earth: 30 turns/s at the default speed), so they turn smoothly instead of flickering; the Moon keeps its exact, tidally locked angle. Venus and Uranus spin retrograde.
 - Stretch goal: the Earth blends day and night textures by light direction.
+- Stretch goal: normal mapping on the Earth. A tangent-space normal map is computed at start-up from the
+  brightness of the Earth map (central differences, `src/NormalMap.*`), and the fragment shader turns it into
+  world space with the tangent frame of the sphere (east, north, up). `N` switches the relief on and off.
 - Stretch goal: Saturn has two-sided, textured transparent rings with its axial tilt,
   radial gaps and a shadow cast by the planet. Rings use both scene lights and render
   after the opaque bodies and skybox, with depth testing but without depth writes.
@@ -124,7 +128,7 @@ to build or run. Resource-only edits are copied on each build, including builds 
 
 ## AI use
 
-The team used an AI coding assistant for about one third of the code, plus parts of the report. **Nurzhan Zhumabekov** wrote the build, window, shaders, meshes and FPS counter; AI made a small later fix to the spin direction of Venus and Uranus and to spin flicker, and helped with the report: screenshots, four literature review paragraphs with seven journal references, and reference renumbering. **Muzaffar Kapezov** wrote the scene graph, orbits and simulation clock; no AI use is recorded for this part. **Murat Narynbekov** wrote the lighting, skybox, Earth day/night blending and Saturn’s rings; AI only replaced the placeholder textures with the Solar System Scope maps. **Aknur Ondasyn** designed the camera, interface and asteroid belt; AI wrote the first version of the asteroid belt, the follow-camera changes, the panel additions and their tests, which she applied, built and checked in the running application.
+The team used an AI coding assistant for about one third of the code, plus parts of the report. **Nurzhan Zhumabekov** wrote the build, window, shaders, meshes and FPS counter; AI made a small later fix to the spin direction of Venus and Uranus and to spin flicker, added normal mapping for the Earth, and helped with the report: screenshots, four literature review paragraphs with seven journal references, and reference renumbering. **Muzaffar Kapezov** wrote the scene graph, orbits and simulation clock; no AI use is recorded for this part. **Murat Narynbekov** wrote the lighting, skybox, Earth day/night blending and Saturn’s rings; AI only replaced the placeholder textures with the Solar System Scope maps. **Aknur Ondasyn** designed the camera, interface and asteroid belt; AI wrote the first version of the asteroid belt, the follow-camera changes, the panel additions and their tests, which she applied, built and checked in the running application.
 
 Details:
 
@@ -146,6 +150,10 @@ Uranus (positive periods in `src/SolarSystem.cpp`, since their tilt over 90 degr
 the spin retrograde) and slowing fast planet spins on screen to remove flicker (`shownSpinAngle` in
 `src/SceneNode.*`, the frame time passed in `src/App.cpp`), with two new tests in
 `tests/test_core.cpp`. This is about 95 lines; the unit tests pass after the change.
+
+Normal mapping for the Earth was also written with the AI assistant: the normal map generator
+(`src/NormalMap.*`), `Texture::normalMapFromImage`, the tangent frame in `shaders/planet.vert` and
+`shaders/planet.frag`, the `N` toggle and its unit test in `tests/test_core.cpp`.
 
 ## Team responsibilities
 

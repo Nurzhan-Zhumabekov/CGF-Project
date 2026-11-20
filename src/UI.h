@@ -13,6 +13,7 @@ struct UIState {
     bool asteroids = true;     // asteroid belt (instanced)
     int asteroidCount = kDefaultAsteroids;  // how many rocks of the belt are drawn
     bool vsync = true;
+    bool normalMap = true;     // Earth relief (normal mapping)
     bool showHelp = true;
 };
 

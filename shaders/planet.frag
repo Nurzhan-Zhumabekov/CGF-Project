@@ -3,10 +3,13 @@ in vec3 vWorldPos;
 in vec3 vNormal;
 in vec2 vUV;
 in vec3 vTint;
+in vec3 vTangent;
 out vec4 FragColor;
 
 uniform sampler2D uDiffuse;
 uniform sampler2D uNight;      // Earth city lights
+uniform sampler2D uNormalMap;  // Earth relief in tangent space
+uniform int uUseNormalMap;
 uniform vec3 uViewPos;
 uniform vec3 uSunPos;          // light 1: point light in the Sun
 uniform vec3 uSunColor;
@@ -33,7 +36,16 @@ void main() {
         FragColor = vec4(albedo * 1.25, 1.0);
         return;
     }
-    vec3 N = normalize(vNormal);
+    vec3 Ngeo = normalize(vNormal);
+    vec3 N = Ngeo;
+    // Normal mapping (stretch goal): the tangent frame T (east), B (north), N (up) turns the texel
+    // normal n from tangent space into world space: N = T n.x + B n.y + N n.z.
+    if (uUseNormalMap == 1 && dot(vTangent, vTangent) > 1e-10) {
+        vec3 T = normalize(vTangent - dot(vTangent, Ngeo) * Ngeo);  // Gram-Schmidt: exactly perpendicular to N
+        vec3 B = cross(Ngeo, T);
+        vec3 n = texture(uNormalMap, vUV).xyz * 2.0 - 1.0;
+        N = normalize(T * n.x + B * n.y + Ngeo * n.z);
+    }
     vec3 V = normalize(uViewPos - vWorldPos);
 
     vec3 color = 0.06 * albedo;  // ambient
@@ -45,7 +57,7 @@ void main() {
     }
     if (uUseNight == 1) {  // stretch goal: city lights fade in as the surface turns away from the Sun
         vec3 L = normalize(uSunPos - vWorldPos);
-        float night = 1.0 - smoothstep(-0.1, 0.2, dot(N, L));
+        float night = 1.0 - smoothstep(-0.1, 0.2, dot(Ngeo, L));  // the relief must not speckle the terminator
         color += texture(uNight, vUV).rgb * night;
     }
     FragColor = vec4(color, 1.0);

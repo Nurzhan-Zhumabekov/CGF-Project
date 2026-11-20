@@ -7,6 +7,9 @@
 class Texture {
 public:
     explicit Texture(const std::string& path, GLenum wrapS = GL_REPEAT);
+    // Tangent-space normal map computed at start-up from the luminance of the image at `path`
+    // (see NormalMap.h). Rows are flipped like the colour texture, so both share the same UVs.
+    static Texture normalMapFromImage(const std::string& path, float strength);
     ~Texture();
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
@@ -14,6 +17,8 @@ public:
     void bind(unsigned unit) const;
 
 private:
+    Texture() = default;
+    void upload(int width, int height, const unsigned char* rgba, GLenum wrapS);
     GLuint id_ = 0;
 };
 

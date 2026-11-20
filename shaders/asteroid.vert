@@ -16,6 +16,7 @@ out vec3 vWorldPos;
 out vec3 vNormal;
 out vec2 vUV;
 out vec3 vTint;
+out vec3 vTangent;  // the asteroids have no normal map, but planet.frag reads this varying
 
 // Rodrigues' formula: v turned by angle about the unit axis.
 vec3 turn(vec3 v, vec3 axis, float angle) {
@@ -34,5 +35,6 @@ void main() {
     vNormal = normalize(mat3(model) * turn(aNormal, aTumble.xyz, angle));
     vUV = aUV;
     vTint = aTint;
+    vTangent = vec3(0.0);
     gl_Position = uProj * uView * world;
 }
