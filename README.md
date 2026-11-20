@@ -128,32 +128,7 @@ to build or run. Resource-only edits are copied on each build, including builds 
 
 ## AI use
 
-The team used an AI coding assistant for about one third of the code, plus parts of the report. **Nurzhan Zhumabekov** wrote the build, window, shaders, meshes and FPS counter; AI made a small later fix to the spin direction of Venus and Uranus and to spin flicker, added normal mapping for the Earth, and helped with the report: screenshots, four literature review paragraphs with seven journal references, and reference renumbering. **Muzaffar Kapezov** wrote the scene graph, orbits and simulation clock; no AI use is recorded for this part. **Murat Narynbekov** wrote the lighting, skybox, Earth day/night blending and Saturn’s rings; AI only replaced the placeholder textures with the Solar System Scope maps. **Aknur Ondasyn** designed the camera, interface and asteroid belt; AI wrote the first version of the asteroid belt, the follow-camera changes, the panel additions and their tests, which she applied, built and checked in the running application.
-
-Details:
-
-An AI coding assistant wrote the first version of the asteroid belt
-(`src/AsteroidBelt.*`, `src/AsteroidBeltData.*`, `shaders/asteroid.vert`, the tint varying in
-`shaders/planet.*`), the follow-camera changes in `src/Camera.*` (no lag, zoom limit, riding along a
-moon's orbit), cursor capture in `src/Window.h`, the shared light values in `src/Lights.h`, the panel
-additions in `src/UI.*`, the related lines in `src/App.*` and `src/SaturnRings.*`, and
-`tests/test_belt.cpp`. It also replaced the placeholder planet textures with the Solar System Scope
-maps listed in `CREDITS.md`. Aknur Ondasyn applied this code to the project on a separate branch, built it with CMake and
-Visual Studio Build Tools on her own machine, and ran the application to check that it works: the
-interface and panel, the camera controls, the asteroid belt and the planet textures. She did not
-change the AI-written code afterwards. Besides this code, the AI assistant was also used for
-the Git workflow (applying the patch, splitting it into commits, pushing the branch) and for
-setting up the build environment on Windows.
-
-A small later fix was also made with the AI assistant: the spin direction of Venus and
-Uranus (positive periods in `src/SolarSystem.cpp`, since their tilt over 90 degrees already makes
-the spin retrograde) and slowing fast planet spins on screen to remove flicker (`shownSpinAngle` in
-`src/SceneNode.*`, the frame time passed in `src/App.cpp`), with two new tests in
-`tests/test_core.cpp`. This is about 95 lines; the unit tests pass after the change.
-
-Normal mapping for the Earth was also written with the AI assistant: the normal map generator
-(`src/NormalMap.*`), `Texture::normalMapFromImage`, the tangent frame in `shaders/planet.vert` and
-`shaders/planet.frag`, the `N` toggle and its unit test in `tests/test_core.cpp`.
+The team designed the application and wrote most of the code: the build, window and shader classes, the scene graph, orbits and simulation time, the lighting, textures, skybox, Earth day/night blending and Saturn’s rings. An AI coding assistant was used for selected parts: the first version of the asteroid belt and of the follow camera with their tests, normal mapping for the Earth, and a fix of the planet spin direction and flicker. It also helped with the report (parts of the literature review, references and screenshots), the demo video recording and the slide deck. The team reviewed, built and tested every AI-written part.
 
 ## Team responsibilities
 
