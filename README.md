@@ -4,7 +4,7 @@ Solar System Explorer is an interactive 3D model built with C++17 and OpenGL 3.3
 
 Team: Nurzhan Zhumabekov, Muzaffar Kapezov, Murat Narynbekov, Aknur Ondasyn.
 
-Demo video: https://youtu.be/rVL2TXapfIg
+Demo video: https://youtu.be/QA6Noyjfowk
 
 ## Build
 
