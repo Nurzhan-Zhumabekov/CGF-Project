@@ -134,7 +134,7 @@ An AI coding assistant wrote the first version of the asteroid belt
 moon's orbit), cursor capture in `src/Window.h`, the shared light values in `src/Lights.h`, the panel
 additions in `src/UI.*`, the related lines in `src/App.*` and `src/SaturnRings.*`, and
 `tests/test_belt.cpp`. It also replaced the placeholder planet textures with the Solar System Scope
-maps listed in `CREDITS.md` and removed the Python texture scripts. Aknur Ondasyn applied this code to the project on a separate branch, built it with CMake and
+maps listed in `CREDITS.md`. Aknur Ondasyn applied this code to the project on a separate branch, built it with CMake and
 Visual Studio Build Tools on her own machine, and ran the application to check that it works: the
 interface and panel, the camera controls, the asteroid belt and the planet textures. She did not
 change the AI-written code afterwards. Besides this code, the AI assistant was also used for
