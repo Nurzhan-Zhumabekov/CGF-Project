@@ -52,6 +52,7 @@ The ImGui panel also provides time-speed and VSync controls, the scene toggles a
 - Textures with mipmaps and a cubemap skybox (R5).
 - Free-fly and follow cameras, six interactions: focus a body, time speed, pause, second light, orbit lines, asteroid belt (R6). Camera motion is scaled by the frame time, and the follow camera stays locked on its target at any time speed.
 - FPS in the window title and in the panel (R7).
+- Planet spins are slowed on screen when they are fast (Earth: 30 turns/s at the default speed), so they turn smoothly instead of flickering; the Moon keeps its exact, tidally locked angle. Venus and Uranus spin retrograde.
 - Stretch goal: the Earth blends day and night textures by light direction.
 - Stretch goal: Saturn has two-sided, textured transparent rings with its axial tilt,
   radial gaps and a shadow cast by the planet. Rings use both scene lights and render
@@ -133,6 +134,12 @@ interface and panel, the camera controls, the asteroid belt and the planet textu
 change the AI-written code afterwards. Besides this code, Claude was also used as an assistant for
 the Git workflow (applying the patch, splitting it into commits, pushing the branch) and for
 setting up the build environment on Windows.
+
+A small later fix was also made with Claude through Claude Code: the spin direction of Venus and
+Uranus (positive periods in `src/SolarSystem.cpp`, since their tilt over 90 degrees already makes
+the spin retrograde) and slowing fast planet spins on screen to remove flicker (`shownSpinAngle` in
+`src/SceneNode.*`, the frame time passed in `src/App.cpp`), with two new tests in
+`tests/test_core.cpp`. This is about 95 lines; the unit tests pass after the change.
 
 ## Team responsibilities
 

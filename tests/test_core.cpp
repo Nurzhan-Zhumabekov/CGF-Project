@@ -317,11 +317,52 @@ static void everyBodyOrbitsAndSpins() {  // objective 5, first half: 8 planets +
             spinScale = SimClock::kMinScale;
         }
         Swept r = sweep(name, spinScale, spinFrames);
-        float expected = (p.spinPeriod > 0.0f ? 1.0f : -1.0f) * 2.0f * kPiF / 8.0f;  // retrograde: Venus, Uranus
+        float expected = (p.spinPeriod > 0.0f ? 1.0f : -1.0f) * 2.0f * kPiF / 8.0f;  // about the body's own pole
         if (!near(r.spin, expected, 0.01f)) std::printf("  spin of %s: %f, expected %f\n", name.c_str(), r.spin, expected);
         CHECK(near(r.spin, expected, 0.01f));
     }
     CHECK(orbiting == 9);  // 8 planets + the Moon
+}
+
+// Seen from the north of the ecliptic (+Y), only Venus and Uranus turn clockwise. The sense is the
+// spin about the body's own pole times the side of the ecliptic that pole points to.
+static void onlyVenusAndUranusSpinRetrograde() {
+    SolarSystem s;
+    s.update(0.0);
+    s.forEach([&](SceneNode& n) {
+        const BodyParams& p = n.params();
+        float sense = (p.spinPeriod > 0.0f ? 1.0f : -1.0f) * n.spinAxis().y;  // > 0: counter-clockwise
+        bool retrograde = p.name == "Venus" || p.name == "Uranus";
+        if (retrograde != (sense < 0.0f)) std::printf("  %s spins the wrong way\n", p.name.c_str());
+        CHECK(retrograde == (sense < 0.0f));
+    });
+}
+
+// At the default speed the Earth makes 30 turns per second. On screen it must turn smoothly instead:
+// a small step every frame, the same way round, under kMaxShownSpinTurnsPerSecond.
+static void fastSpinIsSlowedOnScreen() {
+    SolarSystem s, exact;
+    SimClock clock;
+    s.update(clock.days());
+    SceneNode& earth = *s.find("Earth");
+    float total = 0.0f;
+    for (int i = 0; i < 60; ++i) {
+        glm::mat4 before = earth.model();
+        clock.advance(1.0f / 60.0f);
+        s.update(clock.days(), 1.0 / 60.0);
+        float step = measuredSpin(before, earth.model(), earth.spinAxis());
+        CHECK(step > 0.0f && step < 2.0f * kPiF / 50.0f);
+        total += step;
+    }
+    CHECK(total < 2.0f * kPiF * float(SceneNode::kMaxShownSpinTurnsPerSecond));
+    // The Moon is tidally locked, so it keeps its exact angle and still faces the Earth.
+    exact.update(clock.days());
+    CHECK(near(glm::dot(glm::vec3(s.moon().model()[0]), glm::vec3(exact.moon().model()[0])),
+               s.moon().params().radius * s.moon().params().radius, 1e-4f));
+    // Pausing stops the shown spin too.
+    glm::mat4 paused = earth.model();
+    for (int i = 0; i < 10; ++i) s.update(clock.days(), 1.0 / 60.0);
+    CHECK(near(measuredSpin(paused, earth.model(), earth.spinAxis()), 0.0f, 1e-6f));
 }
 
 static void doublingTimeScaleDoublesEverySpeed() {  // objective 5, second half
@@ -414,6 +455,8 @@ int main() {
     clockKeepsPrecisionAfterLongFastRun();
     clockDateCountsFromJ2000();
     everyBodyOrbitsAndSpins();
+    onlyVenusAndUranusSpinRetrograde();
+    fastSpinIsSlowedOnScreen();
     doublingTimeScaleDoublesEverySpeed();
     changingSpeedOrPausingDoesNotJump();
     slowMotionStillMovesLateInTheRun();

@@ -85,7 +85,7 @@ void App::handleInput(float dt) {
     camera_.move(axes, dt, held(GLFW_KEY_LEFT_SHIFT));
 
     clock_.advance(dt);
-    system_.update(clock_.days());
+    system_.update(clock_.days(), dt);  // dt lets fast spins slow down on screen
     if (followed_) {
         camera_.setTarget(followed_->position());
         const SceneNode* parent = followed_->parent();
